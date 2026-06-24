@@ -38,7 +38,7 @@ const localBackupQuestions = {
     { "id": "ca_1", "question": "ما هو شعار السيارة الموضح في الصورة؟", "correctAnswer": "مرسيدس", "options": ["مرسيدس", "بي إم دبليو", "أودي", "تويوتا"], "image": "https://www.carlogos.org/car-logos/mercedes-benz-logo.png" }
   ],
   "monuments": [
-    { "id": "m_1", "question": "أين يقع هذا المعلم الأثري الشهير؟", "correctAnswer": "الأهرامات", "options": ["الأهرامات", "برج إيفل", "سور الصين العظيم", "تاج محل"], "image": "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?w=500" }
+    { "id": "m_1", "question": "أين يقع هذا المعلم الأثري الشهير？", "correctAnswer": "الأهرامات", "options": ["الأهرامات", "برج إيفل", "سور الصين العظيم", "تاج محل"], "image": "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?w=500" }
   ],
   "general": [
     { "id": "g_1", "question": "ما هو أطول نهر في العالم؟", "correctAnswer": "نهر النيل", "options": ["نهر النيل", "نهر الأمازون", "نهر الميسيسيبي", "نهر الدانوب"], "image": null },
@@ -89,6 +89,27 @@ const playerCountryInput = document.getElementById('player-country-input');
 
 let currentTab = 'players';
 
+// دالة مخصصة لاستدعاء الإعلان البيني (Interstitial Ad) الاختباري
+function showInterstitialAd(callback) {
+    if (typeof adBreak === 'function') {
+        console.log("جاري طلب الإعلان البيني الاختباري... 🎬");
+        adBreak({
+            type: 'next',
+            name: 'interstitial_trigger',
+            beforeAd: () => { clearInterval(gameState.timer); }, // إيقاف مؤقت لأي تايمر
+            afterAd: () => { if (callback) callback(); },        // إكمال تشغيل اللعبة بعد إغلاق الإعلان
+            adBreakDone: (placementInfo) => { 
+                console.log("تم التعامل مع الإعلان:", placementInfo);
+                if (placementInfo.breakStatus === 'notReady' || placementInfo.breakStatus === 'timeout') {
+                    if (callback) callback(); // إذا لم يجهز الإعلان، تكمل اللعبة فوراً بدون تعليق
+                }
+            }
+        });
+    } else {
+        if (callback) callback();
+    }
+}
+
 // تشغيل اللعبة وتفعيل الأزرار فوراً
 document.addEventListener("DOMContentLoaded", () => {
     loadSavedData(); 
@@ -132,10 +153,13 @@ function setupClickListeners() {
         toggleSound();
     };
 
+    // تعديل: إظهار إعلان بيني عند محاولة فتح لوحة الصدارة أونلاين
     viewLeaderboardBtn.onclick = (e) => {
         e.preventDefault();
-        leaderboardModal.style.display = 'flex';
-        renderLeaderboard();
+        showInterstitialAd(() => {
+            leaderboardModal.style.display = 'flex';
+            renderLeaderboard();
+        });
     };
 
     closeLeaderboardBtn.onclick = () => {
@@ -213,12 +237,14 @@ function startSpecificCategory(category) {
 function renderQuestion() {
     resetTimer();
     if (gameState.currentQuestionIndex >= gameState.activeQuestions.length) {
-        endGameSession();
+        // تعديل: عند انتهاء الأسئلة، يظهر إعلان بيني ثم يفتح شاشة النتيجة
+        showInterstitialAd(() => {
+            endGameSession();
+        });
         return;
     }
 
     const currentQuestion = gameState.activeQuestions[gameState.currentQuestionIndex];
-    // عرض السكور منسقاً بحيث لا تظهر أرقام سالبة مزعجة في شاشة الـ HUD للاعب
     hudScore.innerHTML = `⭐ ${Math.max(0, gameState.score)}`;
     qCategory.innerText = getCategoryArabicName(currentQuestion.category || (currentQuestion.id ? currentQuestion.id.split('_')[0] : "general"));
     qText.innerText = currentQuestion.question;
@@ -260,23 +286,19 @@ function checkPlayerAnswer(selectedButton, selectedValue, correctAnswer) {
 
     if (selectedValue === correctAnswer) {
         selectedButton.classList.add('correct');
-        gameState.score += 10; // زيادة 10 نقاط عند الإجابة الصحيحة
+        gameState.score += 10; 
         gameState.correctAnswersCount++;
         playSound('correct');
     } else {
         selectedButton.classList.add('wrong');
         gameState.wrongAnswersCount++;
-        
-        // تعديل: السماح بالنزول تحت الصفر داخلياً لكي يتم طرحها من إجمالي الفايربيز
         gameState.score -= 10; 
-        
         playSound('wrong');
         allButtons.forEach(btn => {
             if (btn.innerText === correctAnswer) btn.classList.add('correct');
         });
     }
 
-    // تحديث السكور في الواجهة مباشرة (مع منع ظهور قيمة سالبة شكلياً)
     hudScore.innerHTML = `⭐ ${Math.max(0, gameState.score)}`;
 
     setTimeout(() => {
@@ -301,8 +323,6 @@ function startTimer() {
 function handleTimeOut() {
     gameState.wrongAnswersCount++;
     playSound('wrong');
-    
-    // عقوبة: خصم 10 نقاط داخلياً عند انتهاء الوقت
     gameState.score -= 10;
     hudScore.innerHTML = `⭐ ${Math.max(0, gameState.score)}`;
 
@@ -331,16 +351,13 @@ function endGameSession() {
     localStorage.setItem('saved_player_name', pName);
     localStorage.setItem('saved_player_country', pCountry);
 
-    // عرض صافي نقاط الجولة في شاشة التهنئة (منع ظهور السوالب في الشاشة)
     document.getElementById('res-score').innerText = Math.max(0, gameState.score);
     document.getElementById('res-correct').innerText = gameState.correctAnswersCount;
     document.getElementById('res-wrong').innerText = gameState.wrongAnswersCount;
 
-    // إرسال نقاط الجولة الحالية (سواء موجبة أو سالبة) ليتم دمجها تراكمياً في السيرفر
     if (db) {
         saveScoreToOnlineDatabase(pName, pCountry, gameState.score);
     } else {
-        // حماية أوفلاين كخطة بديلة
         let fallbackScore = Math.max(0, gameState.score);
         if (fallbackScore > gameState.highScore) {
             gameState.highScore = fallbackScore;
@@ -352,22 +369,13 @@ function endGameSession() {
 
 function saveScoreToOnlineDatabase(name, country, currentRoundScore) {
     if (!db) return;
-    
     const playerRef = ref(db, 'leaderboard/' + name);
-    
-    // 1. جلب السكور التراكمي القديم المخزن على السيرفر أولاً
     get(playerRef).then((snapshot) => {
         const data = snapshot.val();
-        
         let oldScore = data ? data.score : 0;
-        
-        // 2. دمج السكور الجديد (إذا كان سالباً سيقوم بالطرح التلقائي من السيرفر)
         let totalScore = oldScore + currentRoundScore;
-        
-        // حماية: إجمالي نقاط اللاعب أونلاين لا يمكن أن تنزل تحت الصفر مطلقاً
         if (totalScore < 0) totalScore = 0;
 
-        // 3. رفع وحفظ النتيجة التراكمية الجديدة بالكامل
         set(playerRef, {
             name: name,
             country: country,
@@ -375,8 +383,6 @@ function saveScoreToOnlineDatabase(name, country, currentRoundScore) {
             timestamp: Date.now()
         }).then(() => {
             console.log(`تم تحديث السكور التراكمي أونلاين: ${totalScore}`);
-            
-            // تحديث السكور الأعلى محلياً في جهاز العميل بناءً على السيرفر
             gameState.highScore = totalScore;
             localStorage.setItem('quiz_high_score', totalScore);
             updateMainMenuStats();
