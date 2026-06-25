@@ -1,0 +1,16 @@
+﻿{
+  "name": "اختبر نفسك",
+  "short_name": "اختبر نفسك",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0f0c20",
+  "theme_color": "#8b5cf6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
