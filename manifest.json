@@ -1,16 +1,25 @@
-﻿{
+{
   "name": "اختبر نفسك",
   "short_name": "اختبر نفسك",
-  "start_url": "index.html",
+  "description": "لعبة تحدي المعرفة الذكي واختبار المعلومات العامة والأعلام والسيارات",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f0c20",
   "theme_color": "#8b5cf6",
   "orientation": "portrait",
+  "id": "com.rfat9094.testyourself",
   "icons": [
     {
       "src": "icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
