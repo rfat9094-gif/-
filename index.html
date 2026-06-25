@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="ar" data-theme="dark">
 <head>
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
 
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js')
-      .then(() => console.log('Service Worker Registered'));
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(reg => console.log('Service Worker Registered!'))
+        .catch(err => console.log('Service Worker Error', err));
+    });
   }
 </script>
     <meta charset="UTF-8">
