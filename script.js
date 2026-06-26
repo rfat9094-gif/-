@@ -318,7 +318,7 @@ function endGameSession() {
     switchScreen(resultScreen);
     playSound('victory');
     
-    // سطر تشغيل الإعلان البيني المعتمد على كود الناشر الموجود في الـ index.html
+  ca-app-pub-8549800035229580/7188520609
     try {
         (window.adsbygoogle = window.adsbygoogle || []).push({ enable_page_level_ads: true });
     } catch (adError) {
