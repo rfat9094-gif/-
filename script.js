@@ -32,7 +32,7 @@ const localBackupQuestions = {
     { "id": "c_2", "question": "إلى أي دولة ينتمي هذا العلم؟", "correctAnswer": "السعودية", "options": ["السعودية", "الكويت", "عمان", "قطر"], "image": "https://flagcdn.com/w320/sa.png" },
     { "id": "c_3", "question": "إلى أي دولة ينتمي هذا العلم؟", "correctAnswer": "الإمارات", "options": ["الإمارات", "الأردن", "فلسطين", "السودان"], "image": "https://flagcdn.com/w320/ae.png" },
     { "id": "c_4", "question": "إلى أي دولة ينتمي هذا العلم؟", "correctAnswer": "الأردن", "options": ["الأردن", "الكويت", "البحرين", "تونس"], "image": "https://flagcdn.com/w320/jo.png" },
-    { "id": "c_5", "question": "إلى أي دولة ينتمي هذا العلم؟", "correctAnswer": "اليابان", "options": ["اليابان", "الصين", "كوريا الجنوبية", "فيتنام"], "image": "https://flagcdn.com/w320/jp.png" }
+    { "id": "c_5", "question": "إلى أي دولة ينتمي هذا العلم？", "correctAnswer": "اليابان", "options": ["اليابان", "الصين", "كوريا الجنوبية", "فيتنام"], "image": "https://flagcdn.com/w320/jp.png" }
   ],
   "cars": [
     { "id": "ca_1", "question": "ما هو شعار السيارة الموضح في الصورة؟", "correctAnswer": "مرسيدس", "options": ["مرسيدس", "بي إم دبليو", "أودي", "تويوتا"], "image": "https://www.carlogos.org/car-logos/mercedes-benz-logo.png" }
@@ -89,7 +89,6 @@ const playerCountryInput = document.getElementById('player-country-input');
 
 let currentTab = 'players';
 
-// تشغيل اللعبة وتفعيل الأزرار فوراً
 document.addEventListener("DOMContentLoaded", () => {
     loadSavedData(); 
     setupClickListeners(); 
@@ -218,7 +217,6 @@ function renderQuestion() {
     }
 
     const currentQuestion = gameState.activeQuestions[gameState.currentQuestionIndex];
-    // عرض السكور منسقاً بحيث لا تظهر أرقام سالبة مزعجة في شاشة الـ HUD للاعب
     hudScore.innerHTML = `⭐ ${Math.max(0, gameState.score)}`;
     qCategory.innerText = getCategoryArabicName(currentQuestion.category || (currentQuestion.id ? currentQuestion.id.split('_')[0] : "general"));
     qText.innerText = currentQuestion.question;
@@ -260,23 +258,19 @@ function checkPlayerAnswer(selectedButton, selectedValue, correctAnswer) {
 
     if (selectedValue === correctAnswer) {
         selectedButton.classList.add('correct');
-        gameState.score += 10; // زيادة 10 نقاط عند الإجابة الصحيحة
+        gameState.score += 10; 
         gameState.correctAnswersCount++;
         playSound('correct');
     } else {
         selectedButton.classList.add('wrong');
         gameState.wrongAnswersCount++;
-        
-        // تعديل: السماح بالنزول تحت الصفر داخلياً لكي يتم طرحها من إجمالي الفايربيز
         gameState.score -= 10; 
-        
         playSound('wrong');
         allButtons.forEach(btn => {
             if (btn.innerText === correctAnswer) btn.classList.add('correct');
         });
     }
 
-    // تحديث السكور في الواجهة مباشرة (مع منع ظهور قيمة سالبة شكلياً)
     hudScore.innerHTML = `⭐ ${Math.max(0, gameState.score)}`;
 
     setTimeout(() => {
@@ -301,8 +295,6 @@ function startTimer() {
 function handleTimeOut() {
     gameState.wrongAnswersCount++;
     playSound('wrong');
-    
-    // عقوبة: خصم 10 نقاط داخلياً عند انتهاء الوقت
     gameState.score -= 10;
     hudScore.innerHTML = `⭐ ${Math.max(0, gameState.score)}`;
 
@@ -325,7 +317,6 @@ function endGameSession() {
     switchScreen(resultScreen);
     playSound('victory');
     
-    // ⬇️ هنا بنحط رقم الوحدة الإعلانية البينية الخاصة بعبتك ⬇️
     try {
         (window.adsbygoogle = window.adsbygoogle || []).push({
             enable_page_level_ads: true,
@@ -339,18 +330,17 @@ function endGameSession() {
 
     const pName = playerNameInput.value.trim() || 'لاعب مجهول';
     const pCountry = playerCountryInput.value;
-    // باقي الكود بتاعك...
-}
-    // عرض صافي نقاط الجولة في شاشة التهنئة (منع ظهور السوالب في الشاشة)
+
+    localStorage.setItem('saved_player_name', pName);
+    localStorage.setItem('saved_player_country', pCountry);
+
     document.getElementById('res-score').innerText = Math.max(0, gameState.score);
     document.getElementById('res-correct').innerText = gameState.correctAnswersCount;
     document.getElementById('res-wrong').innerText = gameState.wrongAnswersCount;
 
-    // إرسال نقاط الجولة الحالية (سواء موجبة أو سالبة) ليتم دمجها تراكمياً في السيرفر
     if (db) {
         saveScoreToOnlineDatabase(pName, pCountry, gameState.score);
     } else {
-        // حماية أوفلاين كخطة بديلة
         let fallbackScore = Math.max(0, gameState.score);
         if (fallbackScore > gameState.highScore) {
             gameState.highScore = fallbackScore;
@@ -358,26 +348,16 @@ function endGameSession() {
             updateMainMenuStats();
         }
     }
-
+}
 
 function saveScoreToOnlineDatabase(name, country, currentRoundScore) {
     if (!db) return;
-    
     const playerRef = ref(db, 'leaderboard/' + name);
-    
-    // 1. جلب السكور التراكمي القديم المخزن على السيرفر أولاً
     get(playerRef).then((snapshot) => {
         const data = snapshot.val();
-        
         let oldScore = data ? data.score : 0;
-        
-        // 2. دمج السكور الجديد (إذا كان سالباً سيقوم بالطرح التلقائي من السيرفر)
         let totalScore = oldScore + currentRoundScore;
-        
-        // حماية: إجمالي نقاط اللاعب أونلاين لا يمكن أن تنزل تحت الصفر مطلقاً
         if (totalScore < 0) totalScore = 0;
-
-        // 3. رفع وحفظ النتيجة التراكمية الجديدة بالكامل
         set(playerRef, {
             name: name,
             country: country,
@@ -385,8 +365,6 @@ function saveScoreToOnlineDatabase(name, country, currentRoundScore) {
             timestamp: Date.now()
         }).then(() => {
             console.log(`تم تحديث السكور التراكمي أونلاين: ${totalScore}`);
-            
-            // تحديث السكور الأعلى محلياً في جهاز العميل بناءً على السيرفر
             gameState.highScore = totalScore;
             localStorage.setItem('quiz_high_score', totalScore);
             updateMainMenuStats();
