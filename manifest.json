@@ -1,4 +1,4 @@
-﻿{
+{
   "id": "quiz-game-test-yourself",
   "short_name": "اختبر نفسك",
   "name": "اختبر نفسك",
@@ -6,7 +6,7 @@
   "lang": "ar-EG",
   "dir": "rtl",
   "start_url": "index.html",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait",
   "background_color": "#0f0c20",
   "theme_color": "#8b5cf6",
