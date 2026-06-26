@@ -321,7 +321,7 @@ function endGameSession() {
         (window.adsbygoogle = window.adsbygoogle || []).push({
             enable_page_level_ads: true,
             interstitial: { 
-                ad_unit_id: "ca-app-pub-8549800035229580~7862026762" 
+                ad_unit_id: "ca-app-pub-8549800035229580/6401675241" 
             }
         });
     } catch (adError) {
