@@ -317,16 +317,25 @@ function endGameSession() {
     switchScreen(resultScreen);
     playSound('victory');
     
+        // 👇 استبدل كود الـ try القديم بهذا الجزء فقط
     try {
-        (window.adsbygoogle = window.adsbygoogle || []).push({
-            enable_page_level_ads: true,
-            interstitial: { 
-                ad_unit_id: "ca-app-pub-8549800035229580/6401675241" 
+        window.adsbygoogle = window.adsbygoogle || [];
+        window.adsbygoogle.push(function() {
+            var interstitial = {
+                ad_unit_id: "ca-app-pub-8549800035229580/6412792261",
+                enable_page_level_ads: true
+            };
+            if (window.adsbygoogle.showInterstitial) {
+                window.adsbygoogle.showInterstitial(interstitial);
+                console.log("تم طلب إظهار الإعلان بنجاح! 🚀");
+            } else {
+                console.log("الخاصية showInterstitial غير مدعومة حالياً في الكاش.");
             }
         });
     } catch (adError) {
-        console.log("انتظار تحميل الإعلان...");
+        console.log("خطأ في تحميل شفرة الإعلان البيني:", adError);
     }
+
 
     const pName = playerNameInput.value.trim() || 'لاعب مجهول';
     const pCountry = playerCountryInput.value;
